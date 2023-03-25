@@ -1,0 +1,1 @@
+export type CardValues = { [suite: number]: {[rank: number]: number | number[]} };
