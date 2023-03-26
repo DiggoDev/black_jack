@@ -4,21 +4,28 @@ import { Dealer } from '../model/dealer';
 import { Deck } from '../model/deck';
 import { Player } from '../model/player';
 import { BlackJackPlayer } from './../model/black_jack_player';
+import { GameInputHandler } from './game_input_handler';
 import { ScoreText } from './text/score_text';
 
 export class BlackjackScene extends Phaser.Scene {
+	public inputEventEmitter: GameInputHandler;
 	private cardAssetsDir = 'assets/images/deck/card/';
 	private cardAssetsFileType = 'png';
 	private deck: Deck;
 	private player: Player;
 	private dealer: Dealer;
 	private cardImages: CardImages;
+
+	private playerScoreText: ScoreText;
+	private dealerScoreText: ScoreText;
+
+
 	// private deck: Phaser.GameObjects.Group;
 	private playerHand: Phaser.GameObjects.Group;
 	private dealerHand: Phaser.GameObjects.Group;
 
-	private playerScoreText: Phaser.GameObjects.Text;
-	private dealerScoreText: Phaser.GameObjects.Text;
+	// private playerScoreText: Phaser.GameObjects.Text;
+	// private dealerScoreText: Phaser.GameObjects.Text;
 	private messageText: Phaser.GameObjects.Text;
 
 	private playerScore: number;
@@ -30,6 +37,7 @@ export class BlackjackScene extends Phaser.Scene {
 		this.player = player;
 		this.dealer = dealer;
 		this.cardImages = new CardImages(this.cardAssetsDir, this.cardAssetsFileType);
+		this.inputEventEmitter = new GameInputHandler(this);
 	}
 
 	preload() {
@@ -41,9 +49,22 @@ export class BlackjackScene extends Phaser.Scene {
 		// Set the background color to green
 		this.cameras.main.setBackgroundColor('#00ff00');
 		
-		new ScoreText(this.add, 10, 10, this.player.getName(), this.player.calculateScore());
-		new ScoreText(this.add, 10, 50, this.dealer.getName(), this.dealer.calculateScore());
+		// Create score text
+		this.playerScoreText = new ScoreText(this.add, 10, 10, this.player.getName(), this.player.calculateScore());
+		this.dealerScoreText = new ScoreText(this.add, 10, 50, this.dealer.getName(), this.dealer.calculateScore());
 
+		// Create UI
+		this.createBottomUIContainer();
+
+		// const hitButton = this.add.text(10, 100, 'Hit', { fontSize: '24px', color: '#ffffff' });
+
+		// initialize input events
+		this.inputEventEmitter.init();
+	}
+
+	public update() {
+		this.playerScoreText.updateScore(this.player.calculateScore());
+		this.dealerScoreText.updateScore(this.dealer.calculateScore());
 		const oneFourthHeight = this.cameras.main.height / 4;
 		this.createPlayerHand(this.player, this.cameras.main.centerX, oneFourthHeight * 3);
 		this.createPlayerHand(this.dealer, this.cameras.main.centerX, oneFourthHeight);
@@ -61,6 +82,25 @@ export class BlackjackScene extends Phaser.Scene {
 			handGroup.add(cardImage);
 		}
 		return handGroup;
+	}
+	private createBottomUIContainer() {
+		const uiContainer = this.add.container(0, this.cameras.main.height);
+		uiContainer.x = 0;
+		uiContainer.y = this.cameras.main.height - (uiContainer.displayHeight / 2);
+		uiContainer.setScale(2, 2);
+
+		const background = this.add.rectangle(0, 0, this.cameras.main.width, 100, 0x000000, 0.5);
+		uiContainer.add(background);
+
+		// Create buttons
+		const hitButton =  this.add.text(0, 0, 'Hit', { fontSize: '24px', color: '#ffffff' })
+			.setOrigin(0, 1)
+			.setInteractive()
+			.on('pointerdown', () => {
+				// Handle hit button click
+				console.log('Hit button clicked');
+			});
+		uiContainer.add(hitButton);
 	}
 	private loadCards() {
 		for (const suit of this.deck.suits) {

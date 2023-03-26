@@ -1,10 +1,11 @@
 import { Card } from './card';
 
 export class BlackJackPlayer {
-	public testCard = 'cardDiamonds9';
-	public testCards: string[] = [];
+	public isBusted = false;
+	public haveStopped = false;
 	protected hand: Card[] = [];
 	protected name: string;
+	
 
 	constructor(name: string) {
 		this.hand = [];
@@ -20,23 +21,33 @@ export class BlackJackPlayer {
 	public hit(card: Card): void {
 		card.image = 'card';
 		console.log(this.name + ' hit ' + card.image);
-		this.testCards.push(card.image);
 		this.hand.push(card);
 	}
 
 	public stand(): void {
+		// TODO this
+		console.log('stand');
+		this.haveStopped = true;
+		// do nothing
+	}
+	public bust(): void {
+		// TODO this
+		console.log('bust');
+		this.isBusted = true;
 		// do nothing
 	}
 
 	public clearHand(): void {
 		this.hand = [];
+		this.haveStopped = false;
+		this.isBusted = false;
 	}
 	public calculateScore(): number {
 		let score = 0;
 		let hasAce = false;
 
 		this.hand.forEach((card: Card) => {
-			score =+ card.value;
+			score += card.value;
 
 			if (card.rank === 'A') {
 				hasAce = true;
